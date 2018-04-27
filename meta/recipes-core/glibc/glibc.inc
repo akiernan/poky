@@ -35,9 +35,11 @@ siteconfig_do_siteconfig_gencache_prepend = " \
 DEPENDS = "virtual/${TARGET_PREFIX}gcc-initial libgcc-initial linux-libc-headers virtual/${TARGET_PREFIX}libc-initial"
 # nptl needs libgcc but dlopens it, so our shlibs code doesn't detect this
 #RDEPENDS_${PN} += "${@['','libgcc']['nptl' in '${GLIBC_ADDONS}']}"
-PROVIDES = "virtual/libc virtual/${TARGET_PREFIX}libc-for-gcc"
+
+CRYPTPROVIDES = "virtual/crypt"
+CRYPTPROVIDES_class-nativesdk = ""
+PROVIDES = "virtual/libc virtual/${TARGET_PREFIX}libc-for-gcc ${CRYPTPROVIDES}"
 PROVIDES += "virtual/libintl virtual/libiconv"
-PROVIDES += "virtual/crypt"
 inherit autotools texinfo distro_features_check systemd
 
 LEAD_SONAME = "libc.so"
@@ -75,8 +77,6 @@ EXTRA_OEMAKE += "SHELL=/bin/bash"
 do_configure_prepend() {
 	sed -e "s#@BASH@#/bin/sh#" -i ${S}/elf/ldd.bash.in
 }
-
-GLIBC_ADDONS ?= "nptl,libidn"
 
 # Enable backtrace from abort()
 do_configure_append_arm () {
