@@ -53,6 +53,7 @@ SRC_URI += "\
 
 SRC_URI_append_class-nativesdk = " \
            file://0001-main.c-if-OEPYTHON3HOME-is-set-use-instead-of-PYTHON.patch \
+            file://0001-python3-use-cc_basename-to-replace-CC-for-checking-c.patch \
            "
 
 inherit multilib_header python3native update-alternatives qemu ptest
