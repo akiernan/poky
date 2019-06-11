@@ -39,7 +39,7 @@ def write_license_files(d, license_manifest, pkg_dic):
     import re
 
     bad_licenses = (d.getVar("INCOMPATIBLE_LICENSE") or "").split()
-    bad_licenses = map(lambda l: canonical_license(d, l), bad_licenses)
+    bad_licenses = [canonical_license(d, l) for l in bad_licenses]
     bad_licenses = expand_wildcard_licenses(d, bad_licenses)
 
     with open(license_manifest, "w") as license_file:
