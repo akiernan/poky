@@ -446,6 +446,7 @@ python extend_recipe_sysroot() {
     msg_exists = []
     msg_adding = []
 
+    # Handle all removals first since files may move between recipes
     for dep in configuredeps:
         if mc != 'default':
             # We should not care about other multiconfigs
@@ -461,7 +462,6 @@ python extend_recipe_sysroot() {
         if os.path.exists(depdir + "/" + c):
             lnk = os.readlink(depdir + "/" + c)
             if lnk == c + "." + taskhash and os.path.exists(depdir + "/" + c + ".complete"):
-                msg_exists.append(c)
                 continue
             else:
                 bb.note("%s exists in sysroot, but is stale (%s vs. %s), removing." % (c, lnk, c + "." + taskhash))
@@ -471,6 +471,20 @@ python extend_recipe_sysroot() {
                     os.unlink(depdir + "/" + c + ".complete")
         elif os.path.lexists(depdir + "/" + c):
             os.unlink(depdir + "/" + c)
+
+    # Now handle installs
+    for dep in configuredeps:
+        c = setscenedeps[dep][0]
+        if c not in installed:
+            continue
+        taskhash = setscenedeps[dep][5]
+        taskmanifest = depdir + "/" + c + "." + taskhash
+
+        if os.path.exists(depdir + "/" + c):
+            lnk = os.readlink(depdir + "/" + c)
+            if lnk == c + "." + taskhash and os.path.exists(depdir + "/" + c + ".complete"):
+                msg_exists.append(c)
+                continue
 
         msg_adding.append(c)
 
