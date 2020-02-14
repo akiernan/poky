@@ -153,7 +153,7 @@ do_install() {
             cp -a --parents arch/arm64/kernel/vdso/note.S $kerneldir/build/
             cp -a --parents arch/arm64/kernel/vdso/gen_vdso_offsets.sh $kerneldir/build/
 
-            cp -a --parents arch/arm64/kernel/module.lds $kerneldir/build/
+            cp -a --parents arch/arm64/kernel/module.lds $kerneldir/build/ 2>/dev/null || :
 	fi
 
 	# include the machine specific headers for ARM variants, if available.
@@ -181,7 +181,7 @@ do_install() {
 
 	# required for generate missing syscalls prepare phase
 	cp -a --parents $(find arch/x86 -type f -name "syscall_32.tbl") $kerneldir/build
-	cp -a --parents $(find arch/arm -type f -name "*.tbl") $kerneldir/build
+	cp -a --parents $(find arch/arm -type f -name "*.tbl") $kerneldir/build 2>/dev/null || :
 
 	if [ "${ARCH}" = "x86" ]; then
 	    # files for 'make prepare' to succeed with kernel-devel
