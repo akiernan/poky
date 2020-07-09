@@ -129,16 +129,6 @@ do_prepare_config () {
 	sed -i 's|${DEBUG_PREFIX_MAP}||g' ${S}/.config
 }
 
-# returns all the elements from the src uri that are .cfg files
-def find_cfgs(d):
-    sources=src_patches(d, True)
-    sources_list=[]
-    for s in sources:
-        if s.endswith('.cfg'):
-            sources_list.append(s)
-
-    return sources_list
-
 do_configure () {
 	do_prepare_config
 	merge_config.sh -m .config ${@" ".join(find_cfgs(d))}
