@@ -23,11 +23,11 @@ currently, providing a key/value store accessed by 'domain'.
 
 import collections
 import collections.abc
+import functools
 import logging
 import os.path
 import sys
 import warnings
-from bb.compat import total_ordering
 from collections.abc import Mapping
 import sqlite3
 
@@ -44,7 +44,7 @@ if hasattr(sqlite3, 'enable_shared_cache'):
         pass
 
 
-@total_ordering
+@functools.total_ordering
 class SQLTable(collections.abc.MutableMapping):
     """Object representing a table/domain in the database"""
     def __init__(self, cachefile, table):
