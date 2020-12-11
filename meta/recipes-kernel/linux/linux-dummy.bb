@@ -24,7 +24,7 @@ DESCRIPTION_kernel-vmlinux = "Kernel vmlinux meta package"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
-#COMPATIBLE_MACHINE = "your_machine"
+COMPATIBLE_HOST = ".*-linux"
 
 PR = "r1"
 
