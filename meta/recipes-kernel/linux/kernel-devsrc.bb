@@ -171,7 +171,7 @@ do_install() {
 	    cp -a --parents arch/arm/tools/mach-types $kerneldir/build/
 	    cp -a --parents arch/arm/tools/syscall* $kerneldir/build/
 
-            cp -a --parents arch/arm/kernel/module.lds $kerneldir/build/
+            cp -a --parents arch/arm/kernel/module.lds $kerneldir/build/ 2>/dev/null || :
 	fi
 
 	if [ -d arch/${ARCH}/include ]; then
