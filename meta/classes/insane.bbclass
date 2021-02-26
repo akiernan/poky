@@ -653,6 +653,10 @@ def package_qa_walk(warnfuncs, errorfuncs, package, d):
     warnings = {}
     errors = {}
     for path in pkgfiles[package]:
+            import stat
+
+            if stat.S_ISFIFO(os.lstat(path).st_mode):
+                continue
             elf = oe.qa.ELFFile(path)
             try:
                 elf.open()
