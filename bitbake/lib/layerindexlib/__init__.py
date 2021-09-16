@@ -16,7 +16,6 @@
 import datetime
 
 import logging
-import imp
 
 from collections import OrderedDict
 from layerindexlib.plugin import LayerIndexPluginUrlError
