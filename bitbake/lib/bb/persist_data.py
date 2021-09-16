@@ -22,12 +22,13 @@ currently, providing a key/value store accessed by 'domain'.
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import collections
+import collections.abc
 import logging
 import os.path
 import sys
 import warnings
 from bb.compat import total_ordering
-from collections import Mapping
+from collections.abc import Mapping
 import sqlite3
 
 sqlversion = sqlite3.sqlite_version_info
@@ -44,7 +45,7 @@ if hasattr(sqlite3, 'enable_shared_cache'):
 
 
 @total_ordering
-class SQLTable(collections.MutableMapping):
+class SQLTable(collections.abc.MutableMapping):
     """Object representing a table/domain in the database"""
     def __init__(self, cachefile, table):
         self.cachefile = cachefile
