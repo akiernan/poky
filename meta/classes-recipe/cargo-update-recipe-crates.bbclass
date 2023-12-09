@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
+inherit cargo_common
+
 ##
 ## Purpose:
 ## This class is used to update the list of crates in SRC_URI
@@ -19,7 +21,7 @@ do_update_crates[nostamp] = "1"
 do_update_crates[doc] = "Update the recipe by reading Cargo.lock and write in ${THISDIR}/${BPN}-crates.inc"
 
 # The directory where to search for Cargo.lock files
-CARGO_LOCK_SRC_DIR ??= "${S}"
+CARGO_LOCK_SRC_DIR ??= "${@ os.path.dirname(d.getVar('CARGO_LOCK_PATH', True))}"
 
 do_update_crates() {
     TARGET_FILE="${THISDIR}/${BPN}-crates.inc"
