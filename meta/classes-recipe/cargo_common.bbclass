@@ -45,7 +45,7 @@ CARGO_LOCK_PATH ??= "${@ os.path.join(os.path.dirname(d.getVar('CARGO_MANIFEST_P
 
 CARGO_RUST_TARGET_CCLD ??= "${RUST_TARGET_CCLD}"
 cargo_common_do_configure () {
-	mkdir -p ${CARGO_HOME}/bitbake
+	mkdir -p "${CARGO_VENDORING_DIRECTORY}" "${CARGO_HOME}"
 
 	cat <<- EOF > ${CARGO_HOME}/config
 	# EXTRA_OECARGO_PATHS
