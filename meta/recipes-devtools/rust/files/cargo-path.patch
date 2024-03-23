@@ -17,13 +17,14 @@ Upstream-Status: Submitted [https://github.com/rust-lang/rust/pull/120125]
 
 Signed-off-by: Yash Shinde <Yash.Shinde@windriver.com>
 ---
-diff --git a/src/bootstrap/bootstrap.py b/src/bootstrap/bootstrap.py
---- a/src/bootstrap/bootstrap.py
-+++ b/src/bootstrap/bootstrap.py
-@@ -954,9 +954,11 @@
+Index: rustc-1.77.0-src/src/bootstrap/bootstrap.py
+===================================================================
+--- rustc-1.77.0-src.orig/src/bootstrap/bootstrap.py
++++ rustc-1.77.0-src/src/bootstrap/bootstrap.py
+@@ -975,9 +975,11 @@ class RustBuild(object):
          if "RUSTFLAGS_BOOTSTRAP" in env:
              env["RUSTFLAGS"] += " " + env["RUSTFLAGS_BOOTSTRAP"]
-
+ 
 -        env["PATH"] = os.path.join(self.bin_root(), "bin") + \
 -            os.pathsep + env["PATH"]
 -        if not os.path.isfile(self.cargo()):

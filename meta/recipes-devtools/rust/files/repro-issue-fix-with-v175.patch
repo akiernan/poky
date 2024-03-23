@@ -10,11 +10,13 @@ https://github.com/rust-lang/rust/issues/120825#issuecomment-1964652656
 Upstream-Status: Backport [https://github.com/rust-lang/rust/pull/121959/commits/a9a979839bbdfec48c75d618ab0dce8a953589b8]
 Signed-off-by: Sundeep KOKKONDA <sundeep.kokkonda@windriver.com>
 ---
---- a/compiler/rustc_session/src/session.rs     2023-12-21 08:55:28.000000000 -0800
-+++ b/compiler/rustc_session/src/session.rs     2024-02-26 07:29:15.527577022 -0800
-@@ -1260,19 +1260,6 @@
+Index: rustc-1.77.0-src/compiler/rustc_session/src/session.rs
+===================================================================
+--- rustc-1.77.0-src.orig/compiler/rustc_session/src/session.rs
++++ rustc-1.77.0-src/compiler/rustc_session/src/session.rs
+@@ -906,19 +906,6 @@ impl Session {
      }
-
+ 
      pub fn should_prefer_remapped_for_codegen(&self) -> bool {
 -        // bail out, if any of the requested crate types aren't:
 -        // "compiled executables or libraries"
@@ -32,5 +34,3 @@ Signed-off-by: Sundeep KOKKONDA <sundeep.kokkonda@windriver.com>
          let has_split_debuginfo = match self.split_debuginfo() {
              SplitDebuginfo::Off => false,
              SplitDebuginfo::Packed => true,
-
-
