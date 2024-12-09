@@ -1,0 +1,34 @@
+From 9fc9dc162caecff4573c7cc9bc01e5e06f9dd8ea Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 22 Mar 2018 18:07:29 -0700
+Subject: [PATCH] Replace strncpy with memccpy to fix -Wstringop-truncation.
+
+* nis/nss_nisplus/nisplus-parser.c: Replace strncpy with memcpy to
+	avoid -Wstringop-truncation.
+
+---
+ nis/nss_nisplus/nisplus-parser.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/nis/nss_nisplus/nisplus-parser.c b/nis/nss_nisplus/nisplus-parser.c
+index 64170ddc1ad5..0ce335b1df04 100644
+--- a/nis/nss_nisplus/nisplus-parser.c
++++ b/nis/nss_nisplus/nisplus-parser.c
+@@ -87,7 +87,7 @@ _nss_nisplus_parse_pwent (nis_result *result, struct passwd *pw,
+       if (len >= room_left)
+ 	goto no_more_room;
+ 
+-      strncpy (first_unused, numstr, len);
++      memcpy (first_unused, numstr, len);
+       first_unused[len] = '\0';
+       numstr = first_unused;
+     }
+@@ -103,7 +103,7 @@ _nss_nisplus_parse_pwent (nis_result *result, struct passwd *pw,
+       if (len >= room_left)
+ 	goto no_more_room;
+ 
+-      strncpy (first_unused, numstr, len);
++      memcpy (first_unused, numstr, len);
+       first_unused[len] = '\0';
+       numstr = first_unused;
+     }

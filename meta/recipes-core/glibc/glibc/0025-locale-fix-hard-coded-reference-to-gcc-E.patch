@@ -1,4 +1,4 @@
-From 6c6aecba19b3e7947100623532a41b6f16734ace Mon Sep 17 00:00:00 2001
+From 6f00693af4ee7271983cbdf705fbd1fe489de8b0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Rosen?= <jeremy.rosen@smile.fr>
 Date: Mon, 22 Aug 2016 16:09:25 +0200
 Subject: [PATCH] locale: fix hard-coded reference to gcc -E
@@ -18,12 +18,13 @@ This patch replaces the hard-coded reference to the gcc binary with the proper
 environment variable, thus allowing a user to override it.
 
 Upstream-Status: Submitted [https://sourceware.org/ml/libc-alpha/2016-08/msg00746.html]
+
 ---
  locale/gen-translit.pl | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/locale/gen-translit.pl b/locale/gen-translit.pl
-index 30d3f2f195..e97653017c 100644
+index 30d3f2f19595..e97653017c6b 100644
 --- a/locale/gen-translit.pl
 +++ b/locale/gen-translit.pl
 @@ -1,5 +1,5 @@

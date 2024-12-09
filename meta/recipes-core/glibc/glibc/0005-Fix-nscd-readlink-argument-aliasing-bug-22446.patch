@@ -1,0 +1,45 @@
+From 402698935f8cb63389a329886d83dffea1d038cf Mon Sep 17 00:00:00 2001
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Mon, 18 Dec 2017 18:50:40 +0000
+Subject: [PATCH] Fix nscd readlink argument aliasing (bug 22446).
+
+Current GCC mainline detects that nscd calls readlink with the same
+buffer for both input and output, which is not valid (those arguments
+are both restrict-qualified in POSIX).  This patch makes it use a
+separate buffer for readlink's input (with a size that is sufficient
+to avoid truncation, so there should be no problems with warnings
+about possible truncation, though not strictly minimal, but much
+smaller than the buffer for output) to avoid this problem.
+
+Tested compilation for aarch64-linux-gnu with build-many-glibcs.py.
+
+	[BZ #22446]
+	* nscd/connections.c (handle_request) [SO_PEERCRED]: Use separate
+	buffers for readlink input and output.
+
+---
+ nscd/connections.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/nscd/connections.c b/nscd/connections.c
+index cc1ed7207764..dab722dcb2f6 100644
+--- a/nscd/connections.c
++++ b/nscd/connections.c
+@@ -1077,14 +1077,15 @@ cannot handle old request version %d; current version is %d"),
+       if (debug_level > 0)
+ 	{
+ #ifdef SO_PEERCRED
++	  char pbuf[sizeof ("/proc//exe") + 3 * sizeof (long int)];
+ # ifdef PATH_MAX
+ 	  char buf[PATH_MAX];
+ # else
+ 	  char buf[4096];
+ # endif
+ 
+-	  snprintf (buf, sizeof (buf), "/proc/%ld/exe", (long int) pid);
+-	  ssize_t n = readlink (buf, buf, sizeof (buf) - 1);
++	  snprintf (pbuf, sizeof (pbuf), "/proc/%ld/exe", (long int) pid);
++	  ssize_t n = readlink (pbuf, buf, sizeof (buf) - 1);
+ 
+ 	  if (n <= 0)
+ 	    dbg_log (_("\

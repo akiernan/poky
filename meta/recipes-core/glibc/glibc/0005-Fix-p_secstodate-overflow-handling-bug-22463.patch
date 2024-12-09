@@ -1,0 +1,136 @@
+From 906ece7f33730e80882fbe0d25bf66e372f13587 Mon Sep 17 00:00:00 2001
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Wed, 22 Nov 2017 22:12:07 +0000
+Subject: [PATCH] Fix p_secstodate overflow handling (bug 22463).
+
+The resolv/res_debug.c function p_secstodate (which is a public
+function exported from libresolv, taking an unsigned long argument)
+does:
+
+        struct tm timebuf;
+        time = __gmtime_r(&clock, &timebuf);
+        time->tm_year += 1900;
+        time->tm_mon += 1;
+        sprintf(output, "%04d%02d%02d%02d%02d%02d",
+                time->tm_year, time->tm_mon, time->tm_mday,
+                time->tm_hour, time->tm_min, time->tm_sec);
+
+If __gmtime_r returns NULL (because the year overflows the range of
+int), this will dereference a null pointer.  Otherwise, if the
+computed year does not fit in four characters, this will cause a
+buffer overrun of the fixed-size 15-byte buffer.  With current GCC
+mainline, there is a compilation failure because of the possible
+buffer overrun.
+
+I couldn't find a specification for how this function is meant to
+behave, but Paul pointed to RFC 4034 as relevant to the cases where
+this function is called from within glibc.  The function's interface
+is inherently problematic when dates beyond Y2038 might be involved,
+because of the ambiguity in how to interpret 32-bit timestamps as such
+dates (the RFC suggests interpreting times as being within 68 years of
+the present date, which would mean some kind of interface whose
+behavior depends on the present date).
+
+This patch works on the basis of making a minimal fix in preparation
+for obsoleting the function.  The function is made to handle times in
+the interval [0, 0x7fffffff] only, on all platforms, with <overflow>
+used as the output string in other cases (and errno set to EOVERFLOW
+in such cases).  This seems to be a reasonable state for the function
+to be in when made a compat symbol by a future patch, being compatible
+with any existing uses for existing timestamps without trying to work
+for later timestamps.  Results independent of the range of time_t also
+simplify the testcase.
+
+I couldn't persuade GCC to recognize the ranges of the struct tm
+fields by adding explicit range checks with a call to
+__builtin_unreachable if outside the range (this looks similar to
+<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80776>), so having added
+a range check on the input, this patch then disables the
+-Wformat-overflow= warning for the sprintf call (I prefer that to the
+use of strftime, as being more transparently correct without knowing
+what each of %m and %M etc. is).
+
+I do not know why this build failure should be new with mainline GCC
+(that is, I don't know what GCC change might have introduced it, when
+the basic functionality for such warnings was already in GCC 7).
+
+I do not know if this is a security issue (that is, if there are
+plausible ways in which a date before -999 or after 9999 from an
+untrusted source might end up in this function).  The system clock is
+arguably an untrusted source (in that e.g. NTP is insecure), but
+probably not to that extent (NTP can't communicate such wild
+timestamps), and uses from within glibc are limited to 32-bit inputs.
+
+Tested with build-many-glibcs.py that this restores the build for arm
+with yesterday's mainline GCC.  Also tested for x86_64 and x86.
+
+	[BZ #22463]
+	* resolv/res_debug.c: Include <libc-diag.h>.
+	(p_secstodate): Assert time_t at least as wide as u_long.  On
+	overflow, use integer seconds since the epoch as output, or use
+	"<overflow>" as output and set errno to EOVERFLOW if integer
+	seconds since the epoch would be 14 or more characters.
+	(p_secstodate) [__GNUC_PREREQ (7, 0)]: Disable -Wformat-overflow=
+	for sprintf call.
+	* resolv/tst-p_secstodate.c: New file.
+	* resolv/Makefile (tests): Add tst-p_secstodate.
+	($(objpfx)tst-p_secstodate): Depend on $(objpfx)libresolv.so.
+
+---
+ resolv/res_debug.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/resolv/res_debug.c b/resolv/res_debug.c
+index 919b86e2b37d..154a4f8e2437 100644
+--- a/resolv/res_debug.c
++++ b/resolv/res_debug.c
+@@ -107,6 +107,7 @@
+ #include <string.h>
+ #include <time.h>
+ #include <shlib-compat.h>
++#include <libc-diag.h>
+ 
+ #ifdef SPRINTF_CHAR
+ # define SPRINTF(x) strlen(sprintf/**/x)
+@@ -1054,6 +1055,8 @@ libresolv_hidden_def (__dn_count_labels)
+ /*
+  * Make dates expressed in seconds-since-Jan-1-1970 easy to read.
+  * SIG records are required to be printed like this, by the Secure DNS RFC.
++ * This is an obsolescent function and does not handle dates outside the
++ * signed 32-bit range.
+  */
+ char *
+ p_secstodate (u_long secs) {
+@@ -1063,12 +1066,31 @@ p_secstodate (u_long secs) {
+ 	struct tm *time;
+ 
+ 	struct tm timebuf;
+-	time = __gmtime_r(&clock, &timebuf);
++	/* The call to __gmtime_r can never produce a year overflowing
++	   the range of int, given the check on SECS, but check for a
++	   NULL return anyway to avoid a null pointer dereference in
++	   case there are any other unspecified errors.  */
++	if (secs > 0x7fffffff
++	    || (time = __gmtime_r (&clock, &timebuf)) == NULL) {
++		strcpy (output, "<overflow>");
++		__set_errno (EOVERFLOW);
++		return output;
++	}
+ 	time->tm_year += 1900;
+ 	time->tm_mon += 1;
++	/* The struct tm fields, given the above range check,
++	   must have values that mean this sprintf exactly fills the
++	   buffer.  But as of GCC 8 of 2017-11-21, GCC cannot tell
++	   that, even given range checks on all fields with
++	   __builtin_unreachable called for out-of-range values.  */
++	DIAG_PUSH_NEEDS_COMMENT;
++#if __GNUC_PREREQ (7, 0)
++	DIAG_IGNORE_NEEDS_COMMENT (8, "-Wformat-overflow=");
++#endif
+ 	sprintf(output, "%04d%02d%02d%02d%02d%02d",
+ 		time->tm_year, time->tm_mon, time->tm_mday,
+ 		time->tm_hour, time->tm_min, time->tm_sec);
++	DIAG_POP_NEEDS_COMMENT;
+ 	return (output);
+ }
+ libresolv_hidden_def (__p_secstodate)

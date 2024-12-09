@@ -18,6 +18,3 @@ do_install() {
 # sotruss script requires sotruss-lib.so (given by libsotruss package), 
 # to produce trace of the library calls.
 RDEPENDS_${PN} += "libsotruss"
-
-# Don't scan for CVEs as glibc will be scanned
-CVE_PRODUCT = ""

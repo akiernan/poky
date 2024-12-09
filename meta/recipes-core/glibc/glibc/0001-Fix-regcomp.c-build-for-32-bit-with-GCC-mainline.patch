@@ -1,0 +1,65 @@
+From e3645c54122668a96cecec325a9684c1c11f2bef Mon Sep 17 00:00:00 2001
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Mon, 20 Nov 2017 19:03:57 +0000
+Subject: [PATCH] Fix regcomp.c build for 32-bit with GCC mainline
+
+posix/regcomp.c fails to build for 32-bit configurations with GCC
+mainline:
+
+In file included from regex.c:66:
+regcomp.c: In function 'init_word_char':
+regcomp.c:934:24: error: conversion from 'long long unsigned int' to 'bitset_word_t {aka long unsigned int}' changes value from '287948901175001088' to '0' [-Werror=overflow]
+    dfa->word_char[0] = wc0;
+                        ^~~
+regcomp.c:935:24: error: conversion from 'long long unsigned int' to 'bitset_word_t {aka long unsigned int}' changes value from '576460745995190270' to '2281701374' [-Werror=overflow]
+    dfa->word_char[1] = wc1;
+                        ^~~
+
+The code has a workaround using const temporary variables instead of
+having constants directly on the RHS of the assignments; this
+workaround no longer suffices to avoid the warning.  This patch
+replaces the workaround by a different one, using conditional
+expressions that evaluate to 0, in the case where this code is inside
+an "if" whose condition evaluates to 0.
+
+Tested compilation for arm with GCC mainline with build-many-glibcs.py
+(where it allows the compilation to get further, next running into
+-Werror=format-overflow= failures in res_debug.c, for which I've filed
+bug 22463 as there seems to be a potentially user-visible bug there);
+also tested for 32-bit x86 with an older compiler to make sure no
+execution failures result from this patch.
+
+2017-11-20  Joseph Myers  <joseph@codesourcery.com>
+
+	* posix/regcomp.c (init_word_char): Use conditional expressions
+	not intermediate const variables to avoid -Werror=overflow errors
+	for 32-bit systems in 64-bit case.
+
+---
+ posix/regcomp.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/posix/regcomp.c b/posix/regcomp.c
+index b724ee338927..53dc11715de3 100644
+--- a/posix/regcomp.c
++++ b/posix/regcomp.c
+@@ -926,12 +926,14 @@ init_word_char (re_dfa_t *dfa)
+     {
+       if (sizeof (dfa->word_char[0]) == 8)
+ 	{
+-          /* The extra temporaries here avoid "implicitly truncated"
++          /* The conditionals here avoid "implicitly truncated"
+              warnings in the case when this is dead code, i.e. 32-bit.  */
+-          const uint64_t wc0 = UINT64_C (0x03ff000000000000);
+-          const uint64_t wc1 = UINT64_C (0x07fffffe87fffffe);
+-	  dfa->word_char[0] = wc0;
+-	  dfa->word_char[1] = wc1;
++	  dfa->word_char[0] = (sizeof (dfa->word_char[0]) == 8
++			       ? UINT64_C (0x03ff000000000000)
++			       : 0);
++	  dfa->word_char[1] = (sizeof (dfa->word_char[0]) == 8
++			       ? UINT64_C (0x07fffffe87fffffe)
++			       : 0);
+ 	  i = 2;
+ 	}
+       else if (sizeof (dfa->word_char[0]) == 4)
