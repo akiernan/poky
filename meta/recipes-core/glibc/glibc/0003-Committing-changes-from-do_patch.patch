@@ -1,0 +1,22 @@
+From 634a6c39db19c354d2e7c901c3c0a5e97b93af60 Mon Sep 17 00:00:00 2001
+From: OpenEmbedded <oe.patch@oe>
+Date: Mon, 9 Dec 2024 15:57:24 +0000
+Subject: [PATCH] Committing changes from do_patch
+
+---
+ elf/readlib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/elf/readlib.c b/elf/readlib.c
+index a84cb8515872..4f6e203e22b7 100644
+--- a/elf/readlib.c
++++ b/elf/readlib.c
+@@ -51,7 +51,7 @@ static struct known_names interpreters[] =
+ #ifdef SYSDEP_KNOWN_INTERPRETER_NAMES
+   SYSDEP_KNOWN_INTERPRETER_NAMES
+ #endif
+-  OECORE_KNOWN_INTERPRETER_NAMES
++  
+ };
+ 
+ static struct known_names known_libs[] =
