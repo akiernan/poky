@@ -505,6 +505,9 @@ python extend_recipe_sysroot() {
         if c.endswith("-native") or "-cross-" in c or "-crosssdk" in c:
             native = True
 
+        if pn == "glibc-locale" and manifest.endswith("-libgcc-initial.populate_sysroot"):
+            continue
+
         if manifest:
             newmanifest = collections.OrderedDict()
             targetdir = destsysroot
